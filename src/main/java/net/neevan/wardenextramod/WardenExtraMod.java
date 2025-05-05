@@ -1,4 +1,4 @@
-package net.neevan.mcamod;
+package net.neevan.wardenextramod;
 
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.api.distmarker.Dist;
@@ -15,14 +15,14 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
-@Mod(MCAMod.MODID)
-public class MCAMod
+@Mod(WardenExtraMod.MODID)
+public class WardenExtraMod
 {
     // Define mod id in a common place for everything to reference
-    public static final String MODID = "mcamod";
+    public static final String MODID = "wardenextramod";
     // Directly reference a slf4j logger
     private static final Logger LOGGER = LogUtils.getLogger();
-    public MCAMod(FMLJavaModLoadingContext context)
+    public WardenExtraMod(FMLJavaModLoadingContext context)
     {
         IEventBus modEventBus = context.getModEventBus();
 
