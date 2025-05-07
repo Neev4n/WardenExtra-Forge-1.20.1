@@ -12,9 +12,9 @@ public class ModItems {
             DeferredRegister.create(ForgeRegistries.ITEMS, WardenExtraMod.MODID);
 
     public static final RegistryObject<Item> MOVEMENT_WAND = ITEMS.register("movement_wand",
-            () -> new Item(new Item.Properties()));
+            () -> new MovementWandItem(new Item.Properties()));
     public static final RegistryObject<Item> INTERACT_WAND = ITEMS.register("interact_wand",
-            () -> new Item(new Item.Properties()));
+            () -> new InteractWandItem(new Item.Properties()));
 
     public static final RegistryObject<Item> FIGHT_WAND = ITEMS.register("fight_wand",
             () -> new Item(new Item.Properties()));
