@@ -3,6 +3,7 @@ package net.neevan.wardenextramod;
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -12,7 +13,10 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neevan.wardenextramod.capability.CapabilityEventHandler;
+import net.neevan.wardenextramod.capability.ModCapabilities;
 import net.neevan.wardenextramod.item.ModItems;
+import net.neevan.wardenextramod.wardencontroller.WardenControllerProvider;
 import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -22,7 +26,7 @@ public class WardenExtraMod
     // Define mod id in a common place for everything to reference
     public static final String MODID = "wardenextramod";
     // Directly reference a slf4j logger
-    private static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = LogUtils.getLogger();
     public WardenExtraMod(FMLJavaModLoadingContext context)
     {
         IEventBus modEventBus = context.getModEventBus();
@@ -30,6 +34,7 @@ public class WardenExtraMod
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
 
+        ModCapabilities.register();
         ModItems.register(modEventBus);
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
@@ -39,6 +44,10 @@ public class WardenExtraMod
 
         // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us
         context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+
+        MinecraftForge.EVENT_BUS.register(WardenControllerProvider.class);
+        MinecraftForge.EVENT_BUS.register(CapabilityEventHandler.class); // ADD THIS
+
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)
