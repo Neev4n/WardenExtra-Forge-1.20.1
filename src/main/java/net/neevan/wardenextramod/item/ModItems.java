@@ -17,7 +17,7 @@ public class ModItems {
             () -> new InteractWandItem(new Item.Properties()));
 
     public static final RegistryObject<Item> FIGHT_WAND = ITEMS.register("fight_wand",
-            () -> new Item(new Item.Properties()));
+            () -> new FightWandItem(new Item.Properties()));
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
     }

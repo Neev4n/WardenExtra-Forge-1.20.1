@@ -82,7 +82,7 @@ public class InteractWandItem extends Item {
         if (target instanceof Warden) {
             Warden warden = (Warden) target;
             WardenExtraMod.LOGGER.info("is warden");
-            warden.addEffect(new MobEffectInstance(MobEffects.GLOWING,10000));
+            //warden.addEffect(new MobEffectInstance(MobEffects.GLOWING,10000));
             player.getCapability(ModCapabilities.WARDEN_CONTROLLER).ifPresent(controller -> {
                 controller.setWardenUUID(warden.getUUID());
                 player.displayClientMessage(
