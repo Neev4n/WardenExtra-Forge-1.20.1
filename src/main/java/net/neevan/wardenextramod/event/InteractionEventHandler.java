@@ -14,8 +14,11 @@ public class InteractionEventHandler {
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         ItemStack mainHand = event.getItemStack();
         // If the player is holding the InteractWandItem
-        event.setCanceled(true); // Cancels entire pipeline
-        event.setUseBlock(net.minecraftforge.eventbus.api.Event.Result.DENY);
-        event.setUseItem(net.minecraftforge.eventbus.api.Event.Result.DENY);
+        if(mainHand.is(ModItems.INTERACT_WAND.get()) || mainHand.is(ModItems.MOVEMENT_WAND.get()) ){
+            event.setCanceled(true); // Cancels entire pipeline
+            event.setUseBlock(net.minecraftforge.eventbus.api.Event.Result.DENY);
+            event.setUseItem(net.minecraftforge.eventbus.api.Event.Result.DENY);
+        }
+
     }
 }
