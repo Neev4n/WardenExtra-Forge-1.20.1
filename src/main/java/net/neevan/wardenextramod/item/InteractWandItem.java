@@ -1,9 +1,11 @@
 package net.neevan.wardenextramod.item;
 
+import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -21,10 +23,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
 import net.neevan.wardenextramod.WardenExtraMod;
 import net.neevan.wardenextramod.capability.ModCapabilities;
 
+import java.util.List;
 import java.util.UUID;
 
 public class InteractWandItem extends Item {
@@ -39,10 +45,6 @@ public class InteractWandItem extends Item {
         ItemStack stack = player.getItemInHand(hand);
 
         ItemStack offhand = player.getOffhandItem();
-        if (offhand.isEmpty()) {
-            player.displayClientMessage(Component.literal("No item in offhand."), true);
-            return InteractionResultHolder.pass(stack);
-        }
 
         // Perform raycast to check for hit
         double reach = 100.0D;
@@ -122,19 +124,68 @@ public class InteractWandItem extends Item {
                 player.displayClientMessage(Component.literal("Anger cleared from previous entity"), true);
             }
 
-            if (warden.blockPosition().closerThan(pos, 2.5)) {
-                // Clone the UseOnContext for the offhand item
-                UseOnContext offhandContext = new UseOnContext(
-                        player.level(),
-                        player,
-                        InteractionHand.OFF_HAND,
-                        offhand,
-                        blockHitResult
-                );
+            if (warden.blockPosition().closerThan(pos, 3.5)) {
 
-                // Use the offhand item's behavior
-                InteractionResult result = offhand.getItem().useOn(offhandContext);
-                player.displayClientMessage(Component.literal("Warden used " + offhand.getDisplayName().getString()), true);
+                if (offhand.isEmpty()) {
+                    BlockState state = player.level().getBlockState(pos);
+                    BlockEntity blockEntity = player.level().getBlockEntity(pos);
+
+                    // Only break if the block isn't air or indestructible
+                    if (!state.isAir() && state.getDestroySpeed(player.level(), pos) >= 0) {
+                        // Get drops
+                        List<ItemStack> drops = Block.getDrops(state, (ServerLevel) player.level(), pos, blockEntity, player, ItemStack.EMPTY);
+                        for (ItemStack drop : drops) {
+                            player.getInventory().placeItemBackInInventory(drop);
+                        }
+
+                        // Play sound and break
+                        player.level().destroyBlock(pos, false);
+                        player.displayClientMessage(Component.literal("Warden broke the block for you."), true);
+                    } else {
+                        player.displayClientMessage(Component.literal("Block is not breakable."), true);
+                    }
+
+                    return;
+                } else {
+                    // Clone the UseOnContext for the offhand item
+                    UseOnContext offhandContext = new UseOnContext(
+                            player.level(),
+                            player,
+                            InteractionHand.OFF_HAND,
+                            offhand,
+                            blockHitResult
+                    );
+
+                    // Use the offhand item's behavior
+                    InteractionResult result = offhand.getItem().useOn(offhandContext);
+
+                    if (result.consumesAction()) {
+                        // Apply durability loss or count reduction
+                        if (offhand.isDamageableItem()) {
+                            offhand.hurtAndBreak(1, player, p -> p.broadcastBreakEvent(InteractionHand.OFF_HAND));
+                        } else if (!player.getAbilities().instabuild) {
+                            // Not in Creative – Minecraft handles this
+                        } else if (offhand.getCount() > 1) {
+                            offhand.shrink(1); // Reduce stack size by 1
+                        } else if (offhand.getCount() == 1 && !offhand.isDamageableItem()) {
+                            player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
+                        }
+
+                        player.displayClientMessage(Component.literal("Warden used " + offhand.getDisplayName().getString()), true);
+                    } else {
+                        player.displayClientMessage(Component.literal("Use failed or had no effect."), true);
+                    }
+
+                    // Warden faces the block
+                    warden.lookAt(EntityAnchorArgument.Anchor.EYES, Vec3.atCenterOf(pos));
+
+                    // Play Warden attack animation (byte 4)
+                    warden.level().broadcastEntityEvent(warden, (byte) 4);
+
+                    // Optional: play impact sound
+                    warden.playSound(SoundEvents.WARDEN_ATTACK_IMPACT, 5.0F, 1.0F);
+                }
+
             } else {
                 player.displayClientMessage(Component.literal("Warden is too far from the block."), true);
 
